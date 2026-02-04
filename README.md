@@ -60,7 +60,7 @@ src/main/java/com/example/security/
 │   ├── GlobalExceptionHandler.java     # Error handling
 │   └── DataInitializer.java            # Default users
 ├── controller/
-│   ├── AuthController.java             # Login, register, refresh
+│   ├── AuthController.java             # Login, register, refresh, logout
 │   ├── UserController.java             # User operations
 │   ├── AdminController.java            # Admin operations
 │   └── PublicController.java           # Public endpoints
@@ -68,6 +68,7 @@ src/main/java/com/example/security/
 │   ├── AuthRequest.java                # Login request
 │   ├── RegisterRequest.java            # Registration request
 │   ├── AuthResponse.java               # Auth response with token
+│   ├── MessageResponse.java            # Generic message response
 │   ├── UserResponse.java               # User data response
 │   └── ErrorResponse.java              # Error response
 ├── filter/
@@ -80,6 +81,7 @@ src/main/java/com/example/security/
 └── service/
     ├── JwtService.java                 # JWT operations
     ├── AuthService.java                # Authentication logic
+    ├── TokenBlacklistService.java      # Token revocation list
     └── UserService.java                # User operations
 ```
 
@@ -98,6 +100,10 @@ java -jar target/spring-security-jwt-demo-1.0.0.jar
 ```
 
 **Application starts at:** http://localhost:8080
+
+**H2 Console:** http://localhost:8080/h2-console
+
+Data is persisted locally in `./data/securitydb` (H2 file-based database).
 
 ## Default Users
 
@@ -145,6 +151,10 @@ Content-Type: application/json
 # Refresh token
 POST /api/auth/refresh
 Authorization: Bearer <current_token>
+
+# Logout (invalidate current token)
+POST /api/auth/logout
+Authorization: Bearer <token>
 ```
 
 ### User Endpoints (Auth Required)
@@ -285,7 +295,7 @@ jwt:
 
 spring:
   datasource:
-    url: jdbc:h2:mem:securitydb
+    url: jdbc:h2:file:./data/securitydb
 ```
 
 ## Security Best Practices Demonstrated
@@ -296,7 +306,8 @@ spring:
 4. **Role-Based Access**: Endpoint and method-level authorization
 5. **Input Validation**: Bean Validation on DTOs
 6. **Error Handling**: Consistent error responses
-7. **CORS Configuration**: Controlled cross-origin access
+7. **Token Revocation on Logout**: In-memory blacklist for demo purposes
+8. **CORS Configuration**: Controlled cross-origin access
 
 ## Dependencies
 

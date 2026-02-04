@@ -51,53 +51,54 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            // Enable CORS
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                // Enable CORS
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
-            // Disable CSRF for stateless REST API
-            .csrf(csrf -> csrf.disable())
+                // Disable CSRF for stateless REST API
+                .csrf(csrf -> csrf.disable())
 
-            // Configure endpoint authorization
-            .authorizeHttpRequests(auth -> auth
-                // Public endpoints - no authentication required
-                .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/public/**").permitAll()
+                // Configure endpoint authorization
+                .authorizeHttpRequests(auth -> auth
+                        // Public endpoints - no authentication required
+                        .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/register").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/refresh", "/api/auth/logout").authenticated()
+                        .requestMatchers("/api/public/**").permitAll()
 
-                // Swagger/OpenAPI endpoints
-                .requestMatchers(
-                    "/swagger-ui/**",
-                    "/swagger-ui.html",
-                    "/v3/api-docs/**",
-                    "/swagger-resources/**"
-                ).permitAll()
+                        // Swagger/OpenAPI endpoints
+                        .requestMatchers(
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**",
+                                "/swagger-resources/**"
+                        ).permitAll()
 
-                // H2 Console (development only)
-                .requestMatchers("/h2-console/**").permitAll()
+                        // H2 Console (development only)
+                        .requestMatchers("/h2-console/**").permitAll()
 
-                // Admin only endpoints
-                .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/api/users/**").hasRole("ADMIN")
+                        // Admin only endpoints
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/users/**").hasRole("ADMIN")
 
-                // User endpoints - any authenticated user
-                .requestMatchers("/api/users/**").hasAnyRole("USER", "ADMIN")
+                        // User endpoints - any authenticated user
+                        .requestMatchers("/api/users/**").hasAnyRole("USER", "ADMIN")
 
-                // All other endpoints require authentication
-                .anyRequest().authenticated()
-            )
+                        // All other endpoints require authentication
+                        .anyRequest().authenticated()
+                )
 
-            // Stateless session management (no session cookies)
-            .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
+                // Stateless session management (no session cookies)
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
 
-            // Set authentication provider
-            .authenticationProvider(authenticationProvider())
+                // Set authentication provider
+                .authenticationProvider(authenticationProvider())
 
-            // Add JWT filter before UsernamePasswordAuthenticationFilter
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                // Add JWT filter before UsernamePasswordAuthenticationFilter
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
 
-            // Allow H2 console frames
-            .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));
+                // Allow H2 console frames
+                .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));
 
         return http.build();
     }

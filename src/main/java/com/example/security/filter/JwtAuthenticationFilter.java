@@ -1,6 +1,7 @@
 package com.example.security.filter;
 
 import com.example.security.service.JwtService;
+import com.example.security.service.TokenBlacklistService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -35,10 +36,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
+    private final TokenBlacklistService tokenBlacklistService;
 
-    public JwtAuthenticationFilter(JwtService jwtService, UserDetailsService userDetailsService) {
+    public JwtAuthenticationFilter(JwtService jwtService,
+                                   UserDetailsService userDetailsService,
+                                   TokenBlacklistService tokenBlacklistService) {
         this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
+        this.tokenBlacklistService = tokenBlacklistService;
     }
 
     @Override
@@ -60,6 +65,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             // Extract token (remove "Bearer " prefix)
             final String jwt = authHeader.substring(7);
+
+            if (tokenBlacklistService.isTokenRevoked(jwt)) {
+                logger.warn("Revoked JWT token used");
+                filterChain.doFilter(request, response);
+                return;
+            }
+
             final String userEmail = jwtService.extractUsername(jwt);
 
             logger.debug("JWT token found for user: {}", userEmail);

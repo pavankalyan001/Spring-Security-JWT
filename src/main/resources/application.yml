@@ -3,7 +3,7 @@ spring:
     name: spring-security-jwt-demo
 
   datasource:
-    url: jdbc:h2:mem:securitydb
+    url: jdbc:h2:file:./data/securitydb
     driver-class-name: org.h2.Driver
     username: sa
     password:
@@ -15,7 +15,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     show-sql: true
     properties:
       hibernate:
